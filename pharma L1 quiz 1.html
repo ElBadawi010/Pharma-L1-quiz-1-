@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz - Dr. El-Sayed El-Badawy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #008080; --secondary: #004d4d; --accent: #ff9800; --bg: #f0f4f8; --text: #2d3436; --white: #ffffff; --success: #2ecc71; --error: #e74c3c; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { background: var(--white); width: 95%; max-width: 650px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); padding: 25px; text-align: center; position: relative; }
+        header h1 { color: var(--primary); margin: 0; font-size: 1.5rem; letter-spacing: 0.5px; }
+        header p { color: #7f8c8d; font-size: 0.9rem; margin-top: 5px; font-weight: 500; }
+        .btn { background: linear-gradient(45deg, var(--primary), var(--secondary)); color: white; border: none; padding: 12px 30px; font-size: 1rem; border-radius: 50px; cursor: pointer; font-family: 'Poppins', sans-serif; margin-top: 20px; transition: transform 0.2s; box-shadow: 0 4px 15px rgba(0,128,128,0.3); font-weight: 600; }
+        .btn:hover { transform: scale(1.05); }
+        .question-box { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; text-align: left; color: var(--secondary); line-height: 1.5; }
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .option-btn { background: var(--white); border: 2px solid #e0e0e0; padding: 15px; border-radius: 12px; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 0.95rem; text-align: left; transition: 0.3s; position: relative; font-weight: 500; color: #555; }
+        .option-btn:hover { background: #f9f9f9; border-color: var(--primary); color: var(--primary); }
+        .option-btn.correct { background: #d4edda; border-color: var(--success); color: #155724; }
+        .option-btn.wrong { background: #f8d7da; border-color: var(--error); color: #721c24; }
+        .option-btn.disabled { pointer-events: none; opacity: 0.8; }
+        .explanation-box { display: none; background: #e8f4f8; border-left: 4px solid var(--primary); padding: 15px; margin-top: 15px; text-align: left; border-radius: 8px; font-size: 0.9rem; line-height: 1.6; }
+        .explanation-title { font-weight: bold; color: var(--primary); margin-bottom: 5px; display: block; text-transform: uppercase; font-size: 0.8rem; }
+        .screen { display: none; animation: fadeIn 0.5s ease; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .contact-card { background: #f8f9fa; border: 1px dashed var(--primary); padding: 20px; border-radius: 12px; margin: 20px 0; font-size: 0.9rem; }
+        .social-btns { display: flex; gap: 10px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
+        .social-link { text-decoration: none; padding: 10px 20px; border-radius: 50px; font-size: 0.85rem; color: white; display: flex; align-items: center; gap: 8px; transition: opacity 0.3s; }
+        .telegram { background: #0088cc; }
+        .whatsapp { background: #25d366; }
+        .progress-bar { width: 100%; height: 6px; background: #eee; margin: 20px 0; border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s ease; }
+        footer { margin-top: 25px; font-size: 0.8rem; color: #aaa; border-top: 1px solid #eee; padding-top: 15px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="start-screen" class="screen active">
+        <header>
+            <h1>ElBadawi Med Academy 🩺</h1>
+            <p>Dr. El-Sayed El-Badawy</p>
+        </header>
+        <div style="margin: 30px 0;"><img src="https://cdn-icons-png.flaticon.com/512/3063/3063205.png" width="90" alt="Icon"></div>
+        <h3>Medical Quiz Challenge</h3>
+        <p>20 Questions | 30 Sec Each</p>
+        <button class="btn" onclick="startQuiz()">Start Medical Quiz</button>
+    </div>
+    <div id="quiz-screen" class="screen">
+        <div class="progress-bar"><div id="progress" class="progress-fill"></div></div>
+        <div id="timer" style="color: var(--error); font-weight:bold; margin-bottom:10px;"></div>
+        <div class="question-box" id="question-text"></div>
+        <div class="options" id="options-container"></div>
+        <div id="explanation" class="explanation-box">
+            <span class="explanation-title">💡 Explanation:</span>
+            <span id="explanation-text"></span>
+        </div>
+        <button id="next-btn" class="btn" style="display:none; margin-top:20px;" onclick="nextQuestion()">Next Question ➡️</button>
+    </div>
+    <div id="result-screen" class="screen">
+        <h2>Quiz Complete!</h2>
+        <div style="font-size: 3rem; font-weight: bold; color: var(--primary);" id="final-score">0%</div>
+        <div style="background:var(--accent); color:white; padding:5px 20px; border-radius:20px; display:inline-block; margin-bottom:20px; font-weight:600;" id="rank-text">Student</div>
+        <div class="contact-card">
+            <strong>👨‍⚕️ Instructor Follow-up:</strong>
+            <p style="margin:5px 0 15px 0; color:#555;">Please send your score to Dr. El-Sayed for evaluation.</p>
+            <div style="font-weight:600; color:#333;">📱 01065615878 <br> 💬 @ElBadawi010</div>
+            <div class="social-btns">
+                <a href="#" id="tg-share" target="_blank" class="social-link telegram">Send via Telegram ✈️</a>
+                <a href="#" id="wa-share" target="_blank" class="social-link whatsapp">Send via WhatsApp 💬</a>
+            </div>
+        </div>
+        <button class="btn" onclick="location.reload()">Try Again 🔄</button>
+    </div>
+    <footer style="direction: ltr;">Prepared by: Dr. El-Sayed El-Badawy</footer>
+</div>
+<audio id="success-sound" src="https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg"></audio>
+<script>
+    const questions = [
+        {
+            question: "How is Pharmacology defined in the lecture?",
+            options: ["The study of surgical procedures", "The study of drug actions, mechanisms, uses, and adverse effects", "The study of herbal medicine exclusively", "The chemical synthesis of new elements"],
+            correct: 1,
+            explanation: "Pharmacology is the study of the actions, mechanisms, uses, and adverse effects of drugs."
+        },
+        {
+            question: "According to the document, what is a 'drug'?",
+            options: ["Any natural or synthetic substance that alters physiological state", "Only synthetic chemicals used in hospitals", "Any substance that tastes bitter", "Substances used only for treating infections"],
+            correct: 0,
+            explanation: "A drug is defined as any natural or synthetic substance that alters the physiological state of a living organism."
+        },
+        {
+            question: "What are the three primary purposes for using drugs mentioned in the text?",
+            options: ["Flavor, scent, and color", "Prevention, treatment, and diagnosis", "Weight loss, muscle gain, and energy", "Research, sales, and manufacturing"],
+            correct: 1,
+            explanation: "Drugs are used for the prevention, treatment, and diagnosis of disease."
+        },
+        {
+            question: "Which branch of pharmacology describes 'the effect of the body on the drug'?",
+            options: ["Pharmacodynamics", "Pharmacotherapeutics", "Pharmacokinetics", "Toxicology"],
+            correct: 2,
+            explanation: "Pharmacokinetics refers to the effect of the body on the drug, including ADME processes."
+        },
+        {
+            question: "The acronym ADME in Pharmacokinetics stands for:",
+            options: ["Action, Dose, Metabolism, Effect", "Absorption, Distribution, Metabolism, Excretion", "Administration, Dilution, Movement, Elimination", "Absorption, Delivery, Mechanism, Exit"],
+            correct: 1,
+            explanation: "Pharmacokinetics includes Absorption (A), Distribution (D), Metabolism (M), and Excretion (E)."
+        },
+        {
+            question: "What does Pharmacodynamics study?",
+            options: ["The speed of drug elimination", "The effect of the drug on the body", "The cost of drug production", "The storage conditions of medications"],
+            correct: 1,
+            explanation: "Pharmacodynamics is the branch studying the effect of the drug on the body, including mechanism of action."
+        },
+        {
+            question: "Drug absorption is defined as the passage of drug molecules from the site of administration to:",
+            options: ["The liver", "The systemic circulation", "The kidneys", "The stomach"],
+            correct: 1,
+            explanation: "Absorption is the passage of drug molecules from the site of administration to the systemic circulation."
+        },
+        {
+            question: "Which route of administration bypasses the absorption process?",
+            options: ["Oral", "Intramuscular (IM)", "Intravenous (IV)", "Subcutaneous"],
+            correct: 2,
+            explanation: "The process of drug absorption applies to all routes except topical and intravenous (where it's injected directly into blood)."
+        },
+        {
+            question: "Regarding molecular size, which molecules are generally absorbed faster?",
+            options: ["Large molecules", "Small molecules", "Medium molecules", "Size does not matter"],
+            correct: 1,
+            explanation: "The document states that small molecules are absorbed significantly better than large molecules (Small >> Large)."
+        },
+        {
+            question: "How does ischemia at the site of administration affect drug absorption?",
+            options: ["It increases absorption", "It has no effect", "It decreases absorption", "It makes the drug more lipid soluble"],
+            correct: 2,
+            explanation: "Vascularity affects absorption; ischemia (reduced blood flow) leads to decreased absorption."
+        },
+        {
+            question: "Which form of a drug is lipid-soluble and can cross biological membranes?",
+            options: ["Ionized form (polar)", "Nonionized form (nonpolar)", "Water-soluble form", "Protonated base"],
+            correct: 1,
+            explanation: "Only the nonionized form (nonpolar) of the drug is lipid soluble and can cross biological membranes."
+        },
+        {
+            question: "What is the definition of pKa?",
+            options: ["The total dose of the drug", "The pH at which 50% of the drug is ionized and 50% is nonionized", "The rate of drug metabolism", "The time required for excretion"],
+            correct: 1,
+            explanation: "The pKa of a drug is the pH at which 50% of the drug is ionized and 50% is nonionized."
+        },
+        {
+            question: "Where is Aspirin (a weak acid with pKa 3.5) best absorbed?",
+            options: ["In the intestine (pH 8)", "In the stomach (pH 1.5)", "In the blood", "In the mouth"],
+            correct: 1,
+            explanation: "Weak acids become less ionized in acidic mediums; therefore, Aspirin is more nonionized and absorbable in the stomach (pH 1.5)."
+        },
+        {
+            question: "Weak basic drugs become more absorbable in which medium?",
+            options: ["Acidic medium", "Neutral medium", "Basic medium", "Highly acidic medium"],
+            correct: 2,
+            explanation: "Weak basic drugs become less ionized (and thus more absorbable) in a basic medium."
+        },
+        {
+            question: "To treat Aspirin toxicity (weak acid), what should be done to the urine?",
+            options: ["Acidification", "Alkalinization", "Neutralization", "Decrease urine volume"],
+            correct: 1,
+            explanation: "Alkalinization of urine makes a weak acid (Aspirin) more ionized and less reabsorbable, aiding excretion."
+        },
+        {
+            question: "How is Amphetamine toxicity (weak base) treated?",
+            options: ["Alkalinization of urine", "Acidification of urine", "Increased fluid intake only", "Oral administration of vinegar"],
+            correct: 1,
+            explanation: "Amphetamine toxicity is treated by acidification of urine, making it more ionized and less reabsorbable."
+        },
+        {
+            question: "What is Bioavailability?",
+            options: ["The total weight of the drug tablet", "The fraction of the administered dose that reaches systemic circulation", "The time it takes for a drug to expire", "The number of side effects a drug has"],
+            correct: 1,
+            explanation: "Bioavailability is the fraction of the administered dose of a drug that reaches the systemic circulation."
+        },
+        {
+            question: "What is the bioavailability of a drug administered intravenously (IV)?",
+            options: ["50%", "75%", "100%", "It depends on the dose"],
+            correct: 2,
+            explanation: "An intravenously administered drug has 100% bioavailability as it enters the circulation directly."
+        },
+        {
+            question: "In the context of drug metabolism (M), what usually happens to the drug?",
+            options: ["It is stored in fat cells", "It undergoes enzymatic alteration of chemical structure", "It is converted back into its original plant form", "It is destroyed by stomach acid only"],
+            correct: 1,
+            explanation: "Metabolism involves enzymatic alteration of the chemical structure, leading to the formation of metabolites."
+        },
+        {
+            question: "When choosing a drug, what balance must a physician assess?",
+            options: ["Cost vs. Packaging", "Manufacturer vs. Brand name", "Desired effects vs. Adverse effects", "Pill size vs. Patient age"],
+            correct: 2,
+            explanation: "The physician should assess the balance between desired and adverse effects when deciding which drug to prescribe."
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let timer;
+    const timePerQuestion = 30;
+
+    function startQuiz() {
+        document.getElementById('start-screen').classList.remove('active');
+        document.getElementById('quiz-screen').classList.add('active');
+        currentQuestionIndex = 0;
+        score = 0;
+        loadQuestion();
+    }
+    function loadQuestion() {
+        resetState();
+        const currentQuestion = questions[currentQuestionIndex];
+        document.getElementById('question-text').innerText = (currentQuestionIndex + 1) + ". " + currentQuestion.question;
+        const progressPercent = ((currentQuestionIndex) / questions.length) * 100;
+        document.getElementById('progress').style.width = progressPercent + "%";
+        const optionsContainer = document.getElementById('options-container');
+        optionsContainer.innerHTML = '';
+        currentQuestion.options.forEach((option, index) => {
+            const button = document.createElement('button');
+            button.innerText = option;
+            button.classList.add('option-btn');
+            button.onclick = () => selectAnswer(index, button);
+            optionsContainer.appendChild(button);
+        });
+        startTimer();
+    }
+    function resetState() {
+        clearInterval(timer);
+        document.getElementById('next-btn').style.display = 'none';
+        document.getElementById('explanation').style.display = 'none';
+        document.getElementById('timer').innerText = '';
+    }
+    function startTimer() {
+        let timeLeft = timePerQuestion;
+        document.getElementById('timer').innerText = `⏳ ${timeLeft} Sec`;
+        timer = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer').innerText = `⏳ ${timeLeft} Sec`;
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                disableOptions();
+                const currentQuestion = questions[currentQuestionIndex];
+                const allButtons = document.querySelectorAll('.option-btn');
+                allButtons[currentQuestion.correct].classList.add('correct');
+                showExplanation();
+                document.getElementById('next-btn').style.display = 'block';
+            }
+        }, 1000);
+    }
+    function selectAnswer(selectedIndex, btn) {
+        clearInterval(timer);
+        const currentQuestion = questions[currentQuestionIndex];
+        const correctIndex = currentQuestion.correct;
+        const allButtons = document.querySelectorAll('.option-btn');
+        if (selectedIndex === correctIndex) {
+            btn.classList.add('correct');
+            score++;
+            const audio = document.getElementById("success-sound");
+            audio.volume = 0.5;
+            audio.play().catch(e => console.log("Audio requires interaction"));
+        } else {
+            btn.classList.add('wrong');
+            allButtons[correctIndex].classList.add('correct');
+        }
+        disableOptions();
+        showExplanation();
+        document.getElementById('next-btn').style.display = 'block';
+    }
+    function disableOptions() {
+        const allButtons = document.querySelectorAll('.option-btn');
+        allButtons.forEach(button => button.classList.add('disabled'));
+    }
+    function showExplanation() {
+        const currentQuestion = questions[currentQuestionIndex];
+        document.getElementById('explanation-text').innerText = currentQuestion.explanation;
+        document.getElementById('explanation').style.display = 'block';
+    }
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    }
+    function showResults() {
+        document.getElementById('quiz-screen').classList.remove('active');
+        document.getElementById('result-screen').classList.add('active');
+        const percentage = Math.round((score / questions.length) * 100);
+        document.getElementById('final-score').innerText = percentage + "%";
+        let rank = "Medical Student 📚";
+        if (percentage >= 50) rank = "GP 🩺";
+        if (percentage >= 80) rank = "Specialist 🔬";
+        if (percentage >= 95) rank = "Consultant 🏆";
+        document.getElementById('rank-text').innerText = rank;
+        const message = `Hello Dr. El-Sayed, I finished the quiz with Rank: ${rank} and Score: ${percentage}%`;
+        const encodedMsg = encodeURIComponent(message);
+        document.getElementById('tg-share').href = `https://t.me/ELBADAWI010?text=${encodedMsg}`;
+        document.getElementById('wa-share').href = `https://wa.me/201065615878?text=${encodedMsg}`;
+    }
+</script>
+</body>
+</html>
